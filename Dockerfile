@@ -7,7 +7,7 @@ RUN go mod tidy
 
 COPY . .
 
-RUN GOARCH=amd64 GOOS=linux go build -o bin/main .
+RUN go build -o bin/main .
 
 FROM alpine:latest
 
@@ -20,6 +20,7 @@ WORKDIR /root/
 COPY --from=build /app/bin/main .
 
 RUN chown myuser:myuser ./main
+RUN chmod +x ./main
 
 USER myuser
 
