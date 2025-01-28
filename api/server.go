@@ -8,7 +8,10 @@ import (
 )
 
 type Config struct {
-	Addr string
+	Addr         string
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	IdleTimeout  time.Duration
 }
 
 type Server struct {
@@ -30,9 +33,9 @@ func (s *Server) setupRouter() {
 	e := echo.New()
 
 	// Server settings
-	e.Server.ReadTimeout = 10 * time.Second
-	e.Server.WriteTimeout = 30 * time.Second
-	e.Server.IdleTimeout = time.Minute
+	e.Server.ReadTimeout = s.config.ReadTimeout * time.Second
+	e.Server.WriteTimeout = s.config.WriteTimeout * time.Second
+	e.Server.IdleTimeout = s.config.IdleTimeout * time.Second
 
 	// Middlewares
 	e.Use(middleware.Logger())
