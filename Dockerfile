@@ -19,11 +19,11 @@ WORKDIR /root/
 
 COPY --from=build /app/bin/main .
 
-RUN chown myuser:myuser ./main
-RUN chmod +x ./main
+RUN chown myuser:myuser /root/main
+RUN chmod 755 /root/main  # Make it executable for the user
 
 USER myuser
 
 EXPOSE 8080
 
-CMD ["./main"]
+CMD ["/root/main"]  # Ensure absolute path, as the user may not have the root working directory by default
