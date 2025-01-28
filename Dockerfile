@@ -7,7 +7,7 @@ RUN go mod tidy
 
 COPY . .
 
-RUN go build -o bin/main .
+RUN GOARCH=amd64 GOOS=linux go build -o bin/main .
 
 
 FROM alpine:latest
