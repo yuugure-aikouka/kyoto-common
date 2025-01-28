@@ -9,7 +9,6 @@ COPY . .
 
 RUN GOARCH=amd64 GOOS=linux go build -o bin/main .
 
-
 FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates
