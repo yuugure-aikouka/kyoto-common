@@ -19,4 +19,5 @@ CREATE INDEX idx_user_id_2 ON partnerships (user_id_2);
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE partnerships;
+DROP TYPE partnership_status;
 -- +goose StatementEnd
