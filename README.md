@@ -17,15 +17,16 @@
     go mod tidy
     ```
 3. Create an `.env` file from `.env.example` in the root folder, and fill it with its appropriate values.
-4. Make sure to have a postgres database running and run the migration script:
+4. Run `docker compose up` to run all app dependencies (postgres, etc.)
+5. Run the migration script:
     ```sh
     make migrate_up
     ```
-5. Run development server:
+6. Run development server:
     ```sh
     make dev
     ```
-6. You can check for other available commands in `Makefile`.
+7. You can check for other available commands in `Makefile`.
 
 ## Guide for developers
 
