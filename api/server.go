@@ -45,6 +45,7 @@ func (s *Server) setupRouter() {
 	rg := e.Group("/v1")
 	rg.GET("/health", s.healthCheckHandler)
 	rg.GET("/users/:id/partners", s.getPartnersHandler)
+	rg.GET("/users/:id/potential-partners", s.getPotentialPartnersHandler)
 
 	s.router = e
 }

@@ -55,3 +55,52 @@ func (q *Queries) ListPartners(ctx context.Context, userID int32) ([]ListPartner
 	}
 	return items, nil
 }
+
+const listPotentialPartners = `-- name: ListPotentialPartners :many
+SELECT u.id, u.username, u.display_name, u.created_at as register_date, u.avatar_url, u.is_ai
+FROM users u
+LEFT JOIN partnerships p -- uses the "left join null filtering" technique, to select ones that don't satisfy the ON condition
+    ON (p.user_id_1 = u.id OR p.user_id_2 = u.id)
+    AND (
+        p.user_id_1 = $1 -- exclude users that $1 has liked, but not the other way around
+        OR (p.user_id_2 = $1 AND p.status = 'accepted') -- unless a partnership has established
+    )
+WHERE
+    u.id != $1 AND p.user_id_1 IS NULL
+`
+
+type ListPotentialPartnersRow struct {
+	ID           int32     `json:"id"`
+	Username     string    `json:"username"`
+	DisplayName  string    `json:"display_name"`
+	RegisterDate time.Time `json:"register_date"`
+	AvatarUrl    string    `json:"avatar_url"`
+	IsAi         bool      `json:"is_ai"`
+}
+
+func (q *Queries) ListPotentialPartners(ctx context.Context, userID int32) ([]ListPotentialPartnersRow, error) {
+	rows, err := q.db.Query(ctx, listPotentialPartners, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPotentialPartnersRow{}
+	for rows.Next() {
+		var i ListPotentialPartnersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.DisplayName,
+			&i.RegisterDate,
+			&i.AvatarUrl,
+			&i.IsAi,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
