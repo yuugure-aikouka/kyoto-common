@@ -3,25 +3,22 @@ package api
 import (
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	db "github.com/yuugure-aikouka/kyoto-common/db/store"
 )
-
-type Config struct {
-	Addr         string
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
-	IdleTimeout  time.Duration
-}
 
 type Server struct {
 	config Config
+	store  db.Store
 	router *echo.Echo
 }
 
-func NewServer(config Config) *Server {
+func NewServer(config Config, store db.Store) *Server {
 	server := &Server{
 		config: config,
+		store:  store,
 	}
 
 	server.setupRouter()
@@ -41,9 +38,13 @@ func (s *Server) setupRouter() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	// Validator
+	e.Validator = &Validator{validator: validator.New()}
+
 	// Routes
 	rg := e.Group("/v1")
 	rg.GET("/health", s.healthCheckHandler)
+	rg.GET("/users/:id/partners", s.getPartnersHandler)
 
 	s.router = e
 }

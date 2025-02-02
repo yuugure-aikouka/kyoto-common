@@ -1,22 +1,27 @@
 package main
 
 import (
+	"context"
 	"log"
-	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/yuugure-aikouka/kyoto-common/api"
-	"github.com/yuugure-aikouka/kyoto-common/utils"
+	db "github.com/yuugure-aikouka/kyoto-common/db/store"
 )
 
 func main() {
-	cfg := api.Config{
-		Addr:         utils.GetEnvString("ADDR", ":8080"),
-		ReadTimeout:  time.Duration(utils.GetEnvInt("SERVER_READ_TIMEOUT", 10)),
-		WriteTimeout: time.Duration(utils.GetEnvInt("SERVER_WRITE_TIMEOUT", 30)),
-		IdleTimeout:  time.Duration(utils.GetEnvInt("SERVER_IDLE_TIMEOUT", 60)),
-	}
+	cfg := api.LoadConfig()
+	ctx := context.Background()
 
-	srv := api.NewServer(cfg)
+	connPool, err := pgxpool.New(ctx, cfg.DBAddr)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v\n", err)
+	}
+	defer connPool.Close()
+
+	store := db.NewSQLStore(connPool)
+
+	srv := api.NewServer(cfg, store)
 
 	log.Fatal(srv.Start())
 }

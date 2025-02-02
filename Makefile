@@ -5,7 +5,7 @@ ifneq (,$(wildcard ./.env))
 endif
 
 export GOOSE_DRIVER := $(DB_DRIVER)
-export GOOSE_DBSTRING := $(DB_URL)
+export GOOSE_DBSTRING := $(DB_ADDR)
 export GOOSE_MIGRATION_DIR := ./db/migration
 
 # Development environment
@@ -36,4 +36,8 @@ migrate_up:
 migrate_down:
 	goose down
 
-.PHONY: dev build start clean new_migration migrate_up migrate_down
+# Generate sqlc go files from `db/queries`
+sqlc:
+	sqlc generate
+
+.PHONY: dev build start clean new_migration migrate_up migrate_down sqlc
