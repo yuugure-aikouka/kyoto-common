@@ -7,10 +7,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/yuugure-aikouka/kyoto-common/api"
 	db "github.com/yuugure-aikouka/kyoto-common/db/store"
+	"github.com/yuugure-aikouka/kyoto-common/utils"
 )
 
 func main() {
-	cfg := api.LoadConfig()
+	cfg := utils.LoadConfig()
 	ctx := context.Background()
 
 	connPool, err := pgxpool.New(ctx, cfg.DBAddr)

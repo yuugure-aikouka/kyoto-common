@@ -7,15 +7,16 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	db "github.com/yuugure-aikouka/kyoto-common/db/store"
+	"github.com/yuugure-aikouka/kyoto-common/utils"
 )
 
 type Server struct {
-	config Config
+	config utils.Config
 	store  db.Store
 	router *echo.Echo
 }
 
-func NewServer(config Config, store db.Store) *Server {
+func NewServer(config utils.Config, store db.Store) *Server {
 	server := &Server{
 		config: config,
 		store:  store,
