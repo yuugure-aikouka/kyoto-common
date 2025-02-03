@@ -14,13 +14,13 @@ func main() {
 	cfg := utils.LoadConfig()
 	ctx := context.Background()
 
-	connPool, err := pgxpool.New(ctx, cfg.DBAddr)
+	dbConn, err := pgxpool.New(ctx, cfg.DBAddr)
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
-	defer connPool.Close()
+	defer dbConn.Close()
 
-	store := db.NewSQLStore(connPool)
+	store := db.NewSQLStore(dbConn)
 
 	srv := api.NewServer(cfg, store)
 
