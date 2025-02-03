@@ -51,7 +51,7 @@ sqlc is a tool that generates type-safe Go code from raw SQL queries. Instead of
 
 To work with sqlc, follow these steps:
 
-1. Define your queries in the db/queries folder. Each query must have a `-- name:` comment to specify the function name in Go.  Example (`db/queries/users.sql`):
+1. Define your queries in the `db/queries` folder. Each query must have a `-- name:` comment to specify the function name in Go.  Example (`db/queries/users.sql`):
     ```sql
     -- name: GetUserById :one
     SELECT * FROM users WHERE id = $1;
