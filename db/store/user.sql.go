@@ -9,6 +9,41 @@ import (
 	"context"
 )
 
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (
+    username, display_name, avatar_url, is_ai
+) VALUES (
+    $1, $2, $3, $4
+) RETURNING id, username, display_name, avatar_url, is_ai, created_at, updated_at
+`
+
+type CreateUserParams struct {
+	Username    string `json:"username"`
+	DisplayName string `json:"display_name"`
+	AvatarUrl   string `json:"avatar_url"`
+	IsAi        bool   `json:"is_ai"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.Username,
+		arg.DisplayName,
+		arg.AvatarUrl,
+		arg.IsAi,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.IsAi,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, username, display_name, avatar_url, is_ai, created_at, updated_at FROM users WHERE id = $1
 `

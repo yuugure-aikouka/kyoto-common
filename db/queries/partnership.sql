@@ -1,3 +1,14 @@
+-- name: CreatePartnership :one
+INSERT INTO partnerships (
+    user_id_1, user_id_2
+) VALUES (
+    $1, $2
+) RETURNING *;
+
+-- name: UpdatePartnershipStatus :exec
+UPDATE partnerships
+SET status = $1
+WHERE user_id_1 = $2 AND user_id_2 = $3;
 
 -- name: ListPartners :many
 SELECT u.id, u.username, u.display_name, u.created_at as register_date, u.avatar_url, u.is_ai

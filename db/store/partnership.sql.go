@@ -10,6 +10,31 @@ import (
 	"time"
 )
 
+const createPartnership = `-- name: CreatePartnership :one
+INSERT INTO partnerships (
+    user_id_1, user_id_2
+) VALUES (
+    $1, $2
+) RETURNING user_id_1, user_id_2, created_at, status
+`
+
+type CreatePartnershipParams struct {
+	UserID1 int32 `json:"user_id_1"`
+	UserID2 int32 `json:"user_id_2"`
+}
+
+func (q *Queries) CreatePartnership(ctx context.Context, arg CreatePartnershipParams) (Partnership, error) {
+	row := q.db.QueryRow(ctx, createPartnership, arg.UserID1, arg.UserID2)
+	var i Partnership
+	err := row.Scan(
+		&i.UserID1,
+		&i.UserID2,
+		&i.CreatedAt,
+		&i.Status,
+	)
+	return i, err
+}
+
 const listPartners = `-- name: ListPartners :many
 SELECT u.id, u.username, u.display_name, u.created_at as register_date, u.avatar_url, u.is_ai
 FROM users u
@@ -103,4 +128,21 @@ func (q *Queries) ListPotentialPartners(ctx context.Context, userID int32) ([]Li
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePartnershipStatus = `-- name: UpdatePartnershipStatus :exec
+UPDATE partnerships
+SET status = $1
+WHERE user_id_1 = $2 AND user_id_2 = $3
+`
+
+type UpdatePartnershipStatusParams struct {
+	Status  PartnershipStatus `json:"status"`
+	UserID1 int32             `json:"user_id_1"`
+	UserID2 int32             `json:"user_id_2"`
+}
+
+func (q *Queries) UpdatePartnershipStatus(ctx context.Context, arg UpdatePartnershipStatusParams) error {
+	_, err := q.db.Exec(ctx, updatePartnershipStatus, arg.Status, arg.UserID1, arg.UserID2)
+	return err
 }
