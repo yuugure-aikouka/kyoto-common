@@ -7,5 +7,5 @@ import (
 )
 
 func (s *Server) healthCheckHandler(c echo.Context) error {
-	return jsonResponse(c, http.StatusOK, nil)
+	return jsonResponse[any](c, http.StatusOK, nil)
 }

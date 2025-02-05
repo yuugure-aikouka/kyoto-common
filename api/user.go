@@ -15,25 +15,25 @@ type GetPartnersRequest struct {
 func (s *Server) getPartnersHandler(c echo.Context) error {
 	var req GetPartnersRequest
 	if err := ValidateRequest(c, &req); err != nil {
-		return jsonResponse(c, http.StatusBadRequest, nil, err.Error())
+		return jsonResponse[any](c, http.StatusBadRequest, nil, err.Error())
 	}
 
 	_, err := s.store.GetUser(c.Request().Context(), req.ID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return jsonResponse(c, http.StatusNotFound, nil, "User not found")
+			return jsonResponse[any](c, http.StatusNotFound, nil, "User not found")
 		}
 
-		return jsonResponse(c, http.StatusInternalServerError, nil)
+		return jsonResponse[any](c, http.StatusInternalServerError, nil)
 	}
 
 	partners, err := s.store.ListPartners(c.Request().Context(), req.ID)
 	if err != nil {
 		c.Logger().Errorf("Failed to fetch partners for user %d: %v", req.ID, err)
-		return jsonResponse(c, http.StatusInternalServerError, nil)
+		return jsonResponse[any](c, http.StatusInternalServerError, nil)
 	}
 
-	return jsonResponse(c, http.StatusOK, partners)
+	return jsonResponse(c, http.StatusOK, &partners)
 }
 
 type GetPotentialPartnersRequest struct {
@@ -43,23 +43,23 @@ type GetPotentialPartnersRequest struct {
 func (s *Server) getPotentialPartnersHandler(c echo.Context) error {
 	var req GetPotentialPartnersRequest
 	if err := ValidateRequest(c, &req); err != nil {
-		return jsonResponse(c, http.StatusBadRequest, nil, err.Error())
+		return jsonResponse[any](c, http.StatusBadRequest, nil, err.Error())
 	}
 
 	_, err := s.store.GetUser(c.Request().Context(), req.ID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return jsonResponse(c, http.StatusNotFound, nil, "User not found")
+			return jsonResponse[any](c, http.StatusNotFound, nil, "User not found")
 		}
 
-		return jsonResponse(c, http.StatusInternalServerError, nil)
+		return jsonResponse[any](c, http.StatusInternalServerError, nil)
 	}
 
-	partners, err := s.store.ListPotentialPartners(c.Request().Context(), req.ID)
+	potentials, err := s.store.ListPotentialPartners(c.Request().Context(), req.ID)
 	if err != nil {
 		c.Logger().Errorf("Failed to fetch potential partners for user %d: %v", req.ID, err)
-		return jsonResponse(c, http.StatusInternalServerError, nil)
+		return jsonResponse[any](c, http.StatusInternalServerError, nil)
 	}
 
-	return jsonResponse(c, http.StatusOK, partners)
+	return jsonResponse(c, http.StatusOK, &potentials)
 }
