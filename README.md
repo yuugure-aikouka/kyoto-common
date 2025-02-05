@@ -71,7 +71,7 @@ To work with sqlc, follow these steps:
         id := 1
         firstUser, err := s.store.GetUserById(c.Request().Context(), id)
         if err != nil {
-            return jsonResponse(c, http.StatusInternalServerError, nil)
+            return jsonResponse[any](c, http.StatusInternalServerError, nil)
         }
 
         return jsonResponse(c, http.StatusOK, firstUser)
