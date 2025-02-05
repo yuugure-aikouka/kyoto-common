@@ -54,3 +54,7 @@ func (s *Server) setupRouter() {
 func (s *Server) Start() error {
 	return s.router.Start(s.config.Addr)
 }
+
+func (s *Server) Route() *echo.Echo {
+	return s.router
+}

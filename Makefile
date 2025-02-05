@@ -40,4 +40,8 @@ migrate_down:
 sqlc:
 	sqlc generate
 
-.PHONY: dev build start clean new_migration migrate_up migrate_down sqlc
+# Run tests
+test:
+	go test -v ./...
+
+.PHONY: dev build start clean new_migration migrate_up migrate_down sqlc test
