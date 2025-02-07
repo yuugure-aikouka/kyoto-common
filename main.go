@@ -6,12 +6,13 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/yuugure-aikouka/kyoto-common/api"
+	"github.com/yuugure-aikouka/kyoto-common/config"
 	db "github.com/yuugure-aikouka/kyoto-common/db/store"
-	"github.com/yuugure-aikouka/kyoto-common/utils"
+	"github.com/yuugure-aikouka/kyoto-common/handler"
 )
 
 func main() {
-	cfg := utils.LoadConfig()
+	cfg := config.LoadConfig()
 	ctx := context.Background()
 
 	dbConn, err := pgxpool.New(ctx, cfg.DBAddr)
@@ -21,8 +22,9 @@ func main() {
 	defer dbConn.Close()
 
 	store := db.NewSQLStore(dbConn)
+	handler := handler.NewHandler(store)
 
-	srv := api.NewServer(cfg, store)
+	srv := api.NewServer(cfg, handler)
 
 	log.Fatal(srv.Start())
 }

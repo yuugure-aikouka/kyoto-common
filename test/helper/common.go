@@ -1,4 +1,4 @@
-package test
+package helper
 
 import (
 	"bytes"
@@ -7,35 +7,36 @@ import (
 	"io"
 	"log"
 
-	"github.com/yuugure-aikouka/kyoto-common/api"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/yuugure-aikouka/kyoto-common/model"
 )
 
-func resetDB() {
-	resetUsers()
-	resetPartnerships()
+func ResetDB(dbConn *pgxpool.Pool) {
+	ResetUsers(dbConn)
+	ResetPartnerships(dbConn)
 }
 
-func resetUsers() {
+func ResetUsers(dbConn *pgxpool.Pool) {
 	_, err := dbConn.Exec(context.Background(), "DELETE FROM users")
 	if err != nil {
 		log.Fatalf("Failed to reset users: %v", err)
 	}
 }
 
-func resetPartnerships() {
+func ResetPartnerships(dbConn *pgxpool.Pool) {
 	_, err := dbConn.Exec(context.Background(), "DELETE FROM partnerships")
 	if err != nil {
 		log.Fatalf("Failed to reset partnerships: %v", err)
 	}
 }
 
-func unmarshalResponseBody[T any](body *bytes.Buffer) (*api.APIResponse[T], error) {
+func UnmarshalResponseBody[T any](body *bytes.Buffer) (*model.Response[T], error) {
 	bytes, err := io.ReadAll(body)
 	if err != nil {
 		return nil, err
 	}
 
-	var responseBody api.APIResponse[T]
+	var responseBody model.Response[T]
 	err = json.Unmarshal(bytes, &responseBody)
 	if err != nil {
 		return nil, err

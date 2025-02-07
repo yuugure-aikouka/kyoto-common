@@ -3,23 +3,22 @@ package api
 import (
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	db "github.com/yuugure-aikouka/kyoto-common/db/store"
-	"github.com/yuugure-aikouka/kyoto-common/utils"
+	"github.com/yuugure-aikouka/kyoto-common/config"
+	"github.com/yuugure-aikouka/kyoto-common/handler"
 )
 
 type Server struct {
-	config utils.Config
-	store  db.Store
-	router *echo.Echo
+	config  config.Config
+	handler *handler.Handler
+	router  *echo.Echo
 }
 
-func NewServer(config utils.Config, store db.Store) *Server {
+func NewServer(config config.Config, handler *handler.Handler) *Server {
 	server := &Server{
-		config: config,
-		store:  store,
+		config:  config,
+		handler: handler,
 	}
 
 	server.setupRouter()
@@ -39,14 +38,11 @@ func (s *Server) setupRouter() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// Validator
-	e.Validator = &Validator{validator: validator.New()}
-
 	// Routes
 	rg := e.Group("/v1")
-	rg.GET("/health", s.healthCheckHandler)
-	rg.GET("/users/:id/partners", s.getPartnersHandler)
-	rg.GET("/users/:id/potential-partners", s.getPotentialPartnersHandler)
+	rg.GET("/health", s.handler.HealthCheck)
+	rg.GET("/users/:id/partners", s.handler.GetPartners)
+	rg.GET("/users/:id/potential-partners", s.handler.GetPotentialPartners)
 
 	s.router = e
 }

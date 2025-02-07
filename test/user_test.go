@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	db "github.com/yuugure-aikouka/kyoto-common/db/store"
+	helper "github.com/yuugure-aikouka/kyoto-common/test/helper"
 	"github.com/yuugure-aikouka/kyoto-common/utils"
 )
 
@@ -21,6 +22,8 @@ var (
 
 func TestGetPartners(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
+		setupTest()
+
 		// create 10 users
 		users := []db.User{}
 		for i := 0; i < 10; i++ {
@@ -44,7 +47,7 @@ func TestGetPartners(t *testing.T) {
 		res := httptest.NewRecorder()
 		server.Route().ServeHTTP(res, req)
 
-		responseBody, err := unmarshalResponseBody[[]db.ListPartnersRow](res.Body)
+		responseBody, err := helper.UnmarshalResponseBody[[]db.ListPartnersRow](res.Body)
 		require.Nil(t, err)
 
 		partnerIDs := []int32{}
@@ -62,11 +65,11 @@ func TestGetPartners(t *testing.T) {
 				require.NotContains(t, partnerIDs, users[i].ID)
 			}
 		}
-
-		resetDB()
 	})
 
 	t.Run("User not found", func(t *testing.T) {
+		setupTest()
+
 		// make the request with a non existing user
 		url := fmt.Sprintf("/v1/users/%d/partners", 1)
 		req := httptest.NewRequest(http.MethodGet, url, nil)
@@ -77,7 +80,9 @@ func TestGetPartners(t *testing.T) {
 	})
 
 	t.Run("Invalid ID Param", func(t *testing.T) {
-		url := fmt.Sprintf("/v1/users/%d/partners", -1)
+		setupTest()
+
+		url := "/v1/users/hello/partners"
 		req := httptest.NewRequest(http.MethodGet, url, nil)
 		res := httptest.NewRecorder()
 		server.Route().ServeHTTP(res, req)
@@ -88,6 +93,8 @@ func TestGetPartners(t *testing.T) {
 
 func TestGetPotentialPartners(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
+		setupTest()
+
 		// create 10 users
 		users := []db.User{}
 		for i := 0; i < 10; i++ {
@@ -122,7 +129,7 @@ func TestGetPotentialPartners(t *testing.T) {
 		res := httptest.NewRecorder()
 		server.Route().ServeHTTP(res, req)
 
-		responseBody, err := unmarshalResponseBody[[]db.ListPotentialPartnersRow](res.Body)
+		responseBody, err := helper.UnmarshalResponseBody[[]db.ListPotentialPartnersRow](res.Body)
 		require.Nil(t, err)
 
 		potentialIDs := []int32{}
@@ -140,11 +147,11 @@ func TestGetPotentialPartners(t *testing.T) {
 				require.NotContains(t, potentialIDs, users[i].ID)
 			}
 		}
-
-		resetDB()
 	})
 
 	t.Run("User not found", func(t *testing.T) {
+		setupTest()
+
 		// make the request with a non existing user
 		url := fmt.Sprintf("/v1/users/%d/potential-partners", 1)
 		req := httptest.NewRequest(http.MethodGet, url, nil)
@@ -155,7 +162,9 @@ func TestGetPotentialPartners(t *testing.T) {
 	})
 
 	t.Run("Invalid ID Param", func(t *testing.T) {
-		url := fmt.Sprintf("/v1/users/%d/potential-partners", -1)
+		setupTest()
+
+		url := "/v1/users/i-am-string/potential-partners"
 		req := httptest.NewRequest(http.MethodGet, url, nil)
 		res := httptest.NewRecorder()
 		server.Route().ServeHTTP(res, req)
