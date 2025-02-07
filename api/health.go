@@ -7,5 +7,6 @@ import (
 )
 
 func (s *Server) healthCheckHandler(c echo.Context) error {
-	return jsonResponse[any](c, http.StatusOK, nil)
+	message := "healthy"
+	return jsonResponse(c, http.StatusOK, &message)
 }

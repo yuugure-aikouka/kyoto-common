@@ -10,7 +10,7 @@ type Validator struct {
 	validator *validator.Validate
 }
 
-func (v *Validator) Validate(i interface{}) error {
+func (v *Validator) Validate(i any) error {
 	if err := v.validator.Struct(i); err != nil {
 		return err
 	}
@@ -18,7 +18,7 @@ func (v *Validator) Validate(i interface{}) error {
 	return nil
 }
 
-func ValidateRequest(c echo.Context, i interface{}) error {
+func ValidateRequest(c echo.Context, i any) error {
 	if err := c.Bind(i); err != nil {
 		return err
 	}
