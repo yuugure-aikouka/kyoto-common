@@ -10,19 +10,9 @@ import (
 )
 
 func (h *Handler) GetPartners(c echo.Context) error {
-	idParam := c.Param("id")
-	id, err := strconv.Atoi(idParam)
+	id, err := h.getIdAndValidateUser(c)
 	if err != nil {
-		return jsonResponse[any](c, http.StatusBadRequest, nil)
-	}
-
-	_, err = h.store.GetUser(c.Request().Context(), int32(id))
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return jsonResponse[any](c, http.StatusNotFound, nil, "User not found")
-		}
-
-		return jsonResponse[any](c, http.StatusInternalServerError, nil)
+		return err
 	}
 
 	partners, err := h.store.ListPartners(c.Request().Context(), int32(id))
@@ -35,19 +25,9 @@ func (h *Handler) GetPartners(c echo.Context) error {
 }
 
 func (h *Handler) GetPotentialPartners(c echo.Context) error {
-	idParam := c.Param("id")
-	id, err := strconv.Atoi(idParam)
+	id, err := h.getIdAndValidateUser(c)
 	if err != nil {
-		return jsonResponse[any](c, http.StatusBadRequest, nil)
-	}
-
-	_, err = h.store.GetUser(c.Request().Context(), int32(id))
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return jsonResponse[any](c, http.StatusNotFound, nil, "User not found")
-		}
-
-		return jsonResponse[any](c, http.StatusInternalServerError, nil)
+		return err
 	}
 
 	potentials, err := h.store.ListPotentialPartners(c.Request().Context(), int32(id))
@@ -57,4 +37,23 @@ func (h *Handler) GetPotentialPartners(c echo.Context) error {
 	}
 
 	return jsonResponse(c, http.StatusOK, &potentials)
+}
+
+func (h *Handler) getIdAndValidateUser(c echo.Context) (int, error) {
+	idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		return 0, jsonResponse[any](c, http.StatusBadRequest, nil)
+	}
+
+	_, err = h.store.GetUser(c.Request().Context(), int32(id))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, jsonResponse[any](c, http.StatusNotFound, nil, "User not found")
+		}
+
+		return 0, jsonResponse[any](c, http.StatusInternalServerError, nil)
+	}
+
+	return id, nil
 }
