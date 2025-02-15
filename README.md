@@ -8,6 +8,7 @@
 - Postgres
 - [Air](https://github.com/air-verse/air) (for hot-reloading in development)
 - [Goose](https://github.com/pressly/goose) (for database migration purposes)
+- [sqlc](https://sqlc.dev/) (for generating type-safe DAO code from SQL)
 
 ### Setup
 
@@ -41,3 +42,38 @@ Suppose we want to create a new table called `users`. Then do the following step
 2. A new migration file will be created in `db/migration` folder.
 3. Fill in your migrate up/down logic there.
 4. Run `make migrate_up` to run the migrations.
+
+### Working with sqlc
+
+sqlc is a tool that generates type-safe Go code from raw SQL queries. Instead of manually writing the cumbersome query logic, you define SQL statements, and sqlc creates Go functions for you.
+
+#### How to use sqlc
+
+To work with sqlc, follow these steps:
+
+1. Define your queries in the `db/queries` folder. Each query must have a `-- name:` comment to specify the function name in Go.  Example (`db/queries/users.sql`):
+    ```sql
+    -- name: GetUserById :one
+    SELECT * FROM users WHERE id = $1;
+    ```
+
+2. Run the following command to generate or sync the Go code:
+    ```bash
+    make sqlc
+    ```
+    This will process all queries in `db/queries` and generate Go functions under `db/store`, based on the `sqlc.yaml` configuration.
+
+    📝 Note: Everything inside `db/store/` is auto-generated, except for `store.go`.
+
+3. Now, you can use the generated functions in your API handlers under the `api/` folder:
+    ```go
+    func (s *Server) getFirstUserHandler(c echo.Context) error {
+        id := 1
+        firstUser, err := s.store.GetUserById(c.Request().Context(), id)
+        if err != nil {
+            return jsonResponse[any](c, http.StatusInternalServerError, nil)
+        }
+
+        return jsonResponse(c, http.StatusOK, firstUser)
+    }
+    ```

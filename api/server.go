@@ -5,23 +5,20 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/yuugure-aikouka/kyoto-common/config"
+	"github.com/yuugure-aikouka/kyoto-common/handler"
 )
 
-type Config struct {
-	Addr         string
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
-	IdleTimeout  time.Duration
-}
-
 type Server struct {
-	config Config
-	router *echo.Echo
+	config  config.Config
+	handler *handler.Handler
+	router  *echo.Echo
 }
 
-func NewServer(config Config) *Server {
+func NewServer(config config.Config, handler *handler.Handler) *Server {
 	server := &Server{
-		config: config,
+		config:  config,
+		handler: handler,
 	}
 
 	server.setupRouter()
@@ -43,11 +40,17 @@ func (s *Server) setupRouter() {
 
 	// Routes
 	rg := e.Group("/v1")
-	rg.GET("/health", s.healthCheckHandler)
+	rg.GET("/health", s.handler.HealthCheck)
+	rg.GET("/users/:id/partners", s.handler.GetPartners)
+	rg.GET("/users/:id/potential-partners", s.handler.GetPotentialPartners)
 
 	s.router = e
 }
 
 func (s *Server) Start() error {
 	return s.router.Start(s.config.Addr)
+}
+
+func (s *Server) Route() *echo.Echo {
+	return s.router
 }
