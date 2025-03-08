@@ -14,7 +14,7 @@ INSERT INTO users (
     username, display_name, avatar_url, is_ai
 ) VALUES (
     $1, $2, $3, $4
-) RETURNING id, username, display_name, avatar_url, is_ai, created_at, updated_at
+) RETURNING id, username, display_name, avatar_url, is_ai, created_at, updated_at, email
 `
 
 type CreateUserParams struct {
@@ -40,12 +40,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.IsAi,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Email,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, display_name, avatar_url, is_ai, created_at, updated_at FROM users WHERE id = $1
+SELECT id, username, display_name, avatar_url, is_ai, created_at, updated_at, email FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUser(ctx context.Context, id int32) (User, error) {
@@ -59,6 +60,7 @@ func (q *Queries) GetUser(ctx context.Context, id int32) (User, error) {
 		&i.IsAi,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Email,
 	)
 	return i, err
 }
