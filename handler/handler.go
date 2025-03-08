@@ -4,17 +4,23 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/yuugure-aikouka/kyoto-common/config"
 	db "github.com/yuugure-aikouka/kyoto-common/db/store"
+	"github.com/yuugure-aikouka/kyoto-common/mailer"
 	"github.com/yuugure-aikouka/kyoto-common/model"
 )
 
 type Handler struct {
-	store db.Store
+	config config.Config
+	store  db.Store
+	mailer *mailer.Mailer
 }
 
-func NewHandler(store db.Store) *Handler {
+func NewHandler(config config.Config, store db.Store, mailer *mailer.Mailer) *Handler {
 	return &Handler{
-		store: store,
+		config: config,
+		store:  store,
+		mailer: mailer,
 	}
 }
 

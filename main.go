@@ -9,6 +9,7 @@ import (
 	"github.com/yuugure-aikouka/kyoto-common/config"
 	db "github.com/yuugure-aikouka/kyoto-common/db/store"
 	"github.com/yuugure-aikouka/kyoto-common/handler"
+	"github.com/yuugure-aikouka/kyoto-common/mailer"
 )
 
 func main() {
@@ -22,7 +23,13 @@ func main() {
 	defer dbConn.Close()
 
 	store := db.NewSQLStore(dbConn)
-	handler := handler.NewHandler(store)
+	mailer := mailer.NewMailer(cfg.EmailSender, mailer.SMTPConfig{
+		Host:     cfg.SMTPHost,
+		Username: cfg.SMTPUsername,
+		Password: cfg.SMTPPassword,
+	})
+
+	handler := handler.NewHandler(cfg, store, mailer)
 
 	srv := api.NewServer(cfg, handler)
 
