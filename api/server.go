@@ -43,6 +43,7 @@ func (s *Server) setupRouter() {
 	rg.GET("/health", s.handler.HealthCheck)
 	rg.GET("/users/:id/partners", s.handler.GetPartners)
 	rg.GET("/users/:id/potential-partners", s.handler.GetPotentialPartners)
+	rg.POST("/auth/magic", s.handler.SendMagicLinkHandler)
 
 	s.router = e
 }

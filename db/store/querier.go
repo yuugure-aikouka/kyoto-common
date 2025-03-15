@@ -9,9 +9,11 @@ import (
 )
 
 type Querier interface {
+	CreateMagicLink(ctx context.Context, arg CreateMagicLinkParams) error
 	CreatePartnership(ctx context.Context, arg CreatePartnershipParams) (Partnership, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	GetUser(ctx context.Context, id int32) (User, error)
+	InvalidateActiveMagicLink(ctx context.Context, email string) error
 	ListPartners(ctx context.Context, userID int32) ([]ListPartnersRow, error)
 	ListPotentialPartners(ctx context.Context, userID int32) ([]ListPotentialPartnersRow, error)
 	UpdatePartnershipStatus(ctx context.Context, arg UpdatePartnershipStatusParams) error

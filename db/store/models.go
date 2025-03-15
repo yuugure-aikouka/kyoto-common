@@ -53,6 +53,13 @@ func (ns NullPartnershipStatus) Value() (driver.Value, error) {
 	return string(ns.PartnershipStatus), nil
 }
 
+type MagicLink struct {
+	ID        int32     `json:"id"`
+	Email     string    `json:"email"`
+	Token     string    `json:"token"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
 type Partnership struct {
 	UserID1   int32             `json:"user_id_1"`
 	UserID2   int32             `json:"user_id_2"`
