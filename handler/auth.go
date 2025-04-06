@@ -9,7 +9,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
@@ -30,7 +31,7 @@ func (h *Handler) SendMagicLinkHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	var request model.SendMagicLinkRequest
-	if err := c.Bind(&request); err != nil {
+	if err := c.Bind(&request); err != nil || request.Email == "" { // TODO: use validator from joshua
 		return jsonResponse[any](c, http.StatusBadRequest, nil, "Missing \"email\" field")
 	}
 
@@ -119,6 +120,41 @@ func (h *Handler) VerifyMagicLinkHandler(c echo.Context) error {
 	})
 }
 
+func (h *Handler) RefreshAccessTokenHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var request model.RefreshAccessTokenRequest
+	if err := c.Bind(&request); err != nil || request.RefreshToken == "" {
+		return jsonResponse[any](c, http.StatusBadRequest, nil, "Missing \"refresh_token\" field")
+	}
+
+	refreshToken, err := h.parseAuthToken(request.RefreshToken, h.config.RefreshTokenSecretKey)
+	if err != nil || !refreshToken.Valid {
+		return jsonResponse[any](c, http.StatusUnauthorized, nil, "Invalid or expired token")
+	}
+
+	exist, err := h.store.CheckRefreshTokenExist(ctx, refreshToken.Raw)
+	if err != nil {
+		c.Logger().Errorf("Failed to check refresh token %s: %v", refreshToken.Raw, err)
+		return jsonResponse[any](c, http.StatusInternalServerError, nil)
+	}
+
+	if !exist {
+		return jsonResponse[any](c, http.StatusUnauthorized, nil, "Invalid or expired token")
+	}
+
+	claims := refreshToken.Claims.(jwt.MapClaims)
+	userId := int32(claims["user_id"].(float64))
+
+	accessToken, err := h.createAuthToken(userId, AccessTokenDuration, h.config.AccessTokenSecretKey)
+	if err != nil {
+		c.Logger().Errorf("Failed to create access token for user %d: %v", userId, err)
+		return jsonResponse[any](c, http.StatusInternalServerError, nil)
+	}
+
+	return jsonResponse(c, http.StatusOK, &model.RefreshAccessTokenResponseBody{AccessToken: accessToken})
+}
+
 func (h *Handler) createMagicLinkToken() string {
 	return utils.RandomBase64EncodedString(MagicLinkTokenLength)
 }
@@ -143,10 +179,17 @@ func (h *Handler) createAuthToken(userId int32, expiryDuration time.Duration, ke
 		"sub":     userId,
 		"exp":     now.Add(expiryDuration).Unix(),
 		"iat":     now.Unix(),
+		"jti":     uuid.New().String(),
 		"user_id": userId,
 	})
 
 	return authToken.SignedString([]byte(key))
+}
+
+func (h *Handler) parseAuthToken(tokenString, key string) (*jwt.Token, error) {
+	return jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		return []byte(key), nil
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 }
 
 // TODO: use the validator from joshua later

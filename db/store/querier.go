@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	CheckRefreshTokenExist(ctx context.Context, token string) (bool, error)
 	CreatePartnership(ctx context.Context, arg CreatePartnershipParams) (Partnership, error)
 	CreateRefreshToken(ctx context.Context, token string) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)

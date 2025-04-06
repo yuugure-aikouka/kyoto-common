@@ -9,6 +9,17 @@ import (
 	"context"
 )
 
+const checkRefreshTokenExist = `-- name: CheckRefreshTokenExist :one
+SELECT COUNT(*) > 0 FROM refresh_tokens WHERE token = $1
+`
+
+func (q *Queries) CheckRefreshTokenExist(ctx context.Context, token string) (bool, error) {
+	row := q.db.QueryRow(ctx, checkRefreshTokenExist, token)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createRefreshToken = `-- name: CreateRefreshToken :exec
 INSERT INTO refresh_tokens (token) VALUES ($1)
 `

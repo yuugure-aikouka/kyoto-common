@@ -14,11 +14,12 @@ import (
 	helper "github.com/yuugure-aikouka/kyoto-common/test/helper"
 )
 
+var testEmail = "anondev71@gmail.com"
+
 func TestSendMagicLink(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		setupTest()
 
-		testEmail := "anondev71@gmail.com"
 		sendMagicLink(t, testEmail)
 	})
 
@@ -36,8 +37,7 @@ func TestSendMagicLink(t *testing.T) {
 	t.Run("Invalid email", func(t *testing.T) {
 		setupTest()
 
-		testEmail := "invalidemail"
-		body := model.SendMagicLinkRequest{Email: testEmail}
+		body := model.SendMagicLinkRequest{Email: "invalidemail"}
 
 		jsonBytes, err := json.Marshal(body)
 		require.NoError(t, err)
@@ -53,7 +53,6 @@ func TestSendMagicLink(t *testing.T) {
 }
 
 func TestVerifyMagicLink(t *testing.T) {
-	testEmail := "anondev71@gmail.com"
 	t.Run("Success", func(t *testing.T) {
 		setupTest()
 
@@ -61,18 +60,7 @@ func TestVerifyMagicLink(t *testing.T) {
 		sentEmail := mailer.SentEmails[0]
 		token := strings.Split(sentEmail.Link, "token=")[1]
 
-		url := fmt.Sprintf("/v1/auth/magic?token=%s", token)
-		req := httptest.NewRequest(http.MethodGet, url, nil)
-		res := httptest.NewRecorder()
-		server.Route().ServeHTTP(res, req)
-
-		resBody, err := helper.UnmarshalResponseBody[model.VerifyMagicLinkResponseBody](res.Body)
-		require.Nil(t, err)
-
-		// validate
-		require.Equal(t, http.StatusOK, res.Code)
-		require.NotNil(t, resBody.Data.AccessToken)
-		require.NotNil(t, resBody.Data.RefreshToken)
+		verifyMagicLink(t, token)
 
 		keys, err := helper.GetMagicLinkKeysByEmail(rdbConn, testEmail)
 		require.NoError(t, err)
@@ -102,6 +90,63 @@ func TestVerifyMagicLink(t *testing.T) {
 	})
 }
 
+func TestRefreshAccessToken(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		setupTest()
+
+		sendMagicLink(t, testEmail)
+		sentEmail := mailer.SentEmails[0]
+		magicLinkToken := strings.Split(sentEmail.Link, "token=")[1]
+
+		authTokens := verifyMagicLink(t, magicLinkToken)
+
+		body := model.RefreshAccessTokenRequest{RefreshToken: authTokens.RefreshToken}
+		jsonBytes, err := json.Marshal(body)
+		require.NoError(t, err)
+
+		url := "/v1/auth/refresh"
+		req := httptest.NewRequest(http.MethodPost, url, bytes.NewReader(jsonBytes))
+		req.Header.Set("Content-Type", "application/json")
+		res := httptest.NewRecorder()
+		server.Route().ServeHTTP(res, req)
+
+		resBody, err := helper.UnmarshalResponseBody[model.RefreshAccessTokenResponseBody](res.Body)
+		require.Nil(t, err)
+
+		// validate
+		require.Equal(t, http.StatusOK, res.Code)
+		require.NotNil(t, resBody.Data.AccessToken)
+		require.NotEqual(t, resBody.Data.AccessToken, authTokens.AccessToken)
+	})
+
+	t.Run("Missing refresh token", func(t *testing.T) {
+		setupTest()
+
+		url := "/v1/auth/refresh"
+		req := httptest.NewRequest(http.MethodPost, url, nil)
+		res := httptest.NewRecorder()
+		server.Route().ServeHTTP(res, req)
+
+		require.Equal(t, http.StatusBadRequest, res.Code)
+	})
+
+	t.Run("Invalid token", func(t *testing.T) {
+		setupTest()
+
+		body := model.RefreshAccessTokenRequest{RefreshToken: "invalid-token"}
+		jsonBytes, err := json.Marshal(body)
+		require.NoError(t, err)
+
+		url := "/v1/auth/refresh"
+		req := httptest.NewRequest(http.MethodPost, url, bytes.NewReader(jsonBytes))
+		req.Header.Set("Content-Type", "application/json")
+		res := httptest.NewRecorder()
+		server.Route().ServeHTTP(res, req)
+
+		require.Equal(t, http.StatusUnauthorized, res.Code)
+	})
+}
+
 func sendMagicLink(t *testing.T, email string) {
 	body := model.SendMagicLinkRequest{Email: email}
 
@@ -122,4 +167,21 @@ func sendMagicLink(t *testing.T, email string) {
 	keys, err := helper.GetMagicLinkKeysByEmail(rdbConn, email)
 	require.NoError(t, err)
 	require.NotEmpty(t, keys)
+}
+
+func verifyMagicLink(t *testing.T, token string) *model.VerifyMagicLinkResponseBody {
+	url := fmt.Sprintf("/v1/auth/magic?token=%s", token)
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	res := httptest.NewRecorder()
+	server.Route().ServeHTTP(res, req)
+
+	resBody, err := helper.UnmarshalResponseBody[model.VerifyMagicLinkResponseBody](res.Body)
+	require.Nil(t, err)
+
+	// validate
+	require.Equal(t, http.StatusOK, res.Code)
+	require.NotNil(t, resBody.Data.AccessToken)
+	require.NotNil(t, resBody.Data.RefreshToken)
+
+	return resBody.Data
 }
