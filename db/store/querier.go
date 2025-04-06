@@ -13,6 +13,7 @@ type Querier interface {
 	CreatePartnership(ctx context.Context, arg CreatePartnershipParams) (Partnership, error)
 	CreateRefreshToken(ctx context.Context, token string) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteRefreshToken(ctx context.Context, token string) error
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, id int32) (User, error)
 	ListPartners(ctx context.Context, userID int32) ([]ListPartnersRow, error)

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -153,6 +154,22 @@ func (h *Handler) RefreshAccessTokenHandler(c echo.Context) error {
 	}
 
 	return jsonResponse(c, http.StatusOK, &model.RefreshAccessTokenResponseBody{AccessToken: accessToken})
+}
+
+func (h *Handler) LogoutHandler(c echo.Context) error {
+	var request model.LogoutRequest
+	if err := c.Bind(&request); err != nil || request.RefreshToken == "" {
+		return jsonResponse[any](c, http.StatusBadRequest, nil, "Missing \"refresh_token\" field")
+	}
+
+	err := h.store.DeleteRefreshToken(context.Background(), request.RefreshToken)
+	if err != nil {
+		c.Logger().Errorf("Failed to delete refresh token %s: %v", request.RefreshToken, err)
+		return jsonResponse[any](c, http.StatusInternalServerError, nil)
+	}
+
+	message := "Logout successful"
+	return jsonResponse(c, http.StatusOK, &message)
 }
 
 func (h *Handler) createMagicLinkToken() string {

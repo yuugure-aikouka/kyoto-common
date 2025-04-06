@@ -46,6 +46,7 @@ func (s *Server) setupRouter() {
 	rg.POST("/auth/magic", s.handler.SendMagicLinkHandler)
 	rg.GET("/auth/magic", s.handler.VerifyMagicLinkHandler)
 	rg.POST("/auth/refresh", s.handler.RefreshAccessTokenHandler)
+	rg.DELETE("/auth/logout", s.handler.LogoutHandler)
 
 	s.router = e
 }

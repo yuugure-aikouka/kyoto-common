@@ -2,6 +2,7 @@ package test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -147,6 +148,31 @@ func TestRefreshAccessToken(t *testing.T) {
 	})
 }
 
+func TestLogout(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		setupTest()
+
+		sendMagicLink(t, testEmail)
+		sentEmail := mailer.SentEmails[0]
+		magicLinkToken := strings.Split(sentEmail.Link, "token=")[1]
+
+		authTokens := verifyMagicLink(t, magicLinkToken)
+
+		body := model.LogoutRequest{RefreshToken: authTokens.RefreshToken}
+		jsonBytes, err := json.Marshal(body)
+		require.NoError(t, err)
+
+		url := "/v1/auth/logout"
+		req := httptest.NewRequest(http.MethodDelete, url, bytes.NewReader(jsonBytes))
+		req.Header.Set("Content-Type", "application/json")
+		res := httptest.NewRecorder()
+		server.Route().ServeHTTP(res, req)
+
+		// validate
+		require.Equal(t, http.StatusOK, res.Code)
+	})
+}
+
 func sendMagicLink(t *testing.T, email string) {
 	body := model.SendMagicLinkRequest{Email: email}
 
@@ -182,6 +208,10 @@ func verifyMagicLink(t *testing.T, token string) *model.VerifyMagicLinkResponseB
 	require.Equal(t, http.StatusOK, res.Code)
 	require.NotNil(t, resBody.Data.AccessToken)
 	require.NotNil(t, resBody.Data.RefreshToken)
+
+	exist, err := store.CheckRefreshTokenExist(context.Background(), resBody.Data.RefreshToken)
+	require.True(t, exist)
+	require.Nil(t, err)
 
 	return resBody.Data
 }

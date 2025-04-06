@@ -28,3 +28,12 @@ func (q *Queries) CreateRefreshToken(ctx context.Context, token string) error {
 	_, err := q.db.Exec(ctx, createRefreshToken, token)
 	return err
 }
+
+const deleteRefreshToken = `-- name: DeleteRefreshToken :exec
+DELETE FROM refresh_tokens WHERE token = $1
+`
+
+func (q *Queries) DeleteRefreshToken(ctx context.Context, token string) error {
+	_, err := q.db.Exec(ctx, deleteRefreshToken, token)
+	return err
+}
