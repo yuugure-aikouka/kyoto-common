@@ -48,7 +48,7 @@ func (h *Handler) getIdAndValidateUser(c echo.Context) (int, error) {
 		return 0, echo.NewHTTPError(http.StatusBadRequest)
 	}
 
-	_, err = h.store.GetUser(c.Request().Context(), int32(id))
+	_, err = h.store.GetUserById(c.Request().Context(), int32(id))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return 0, echo.NewHTTPError(http.StatusNotFound, "User not found")

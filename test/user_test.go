@@ -26,7 +26,7 @@ func TestGetPartners(t *testing.T) {
 
 		// create 10 users
 		users := []db.User{}
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			users = append(users, createRandomUser(t))
 		}
 
@@ -97,7 +97,7 @@ func TestGetPotentialPartners(t *testing.T) {
 
 		// create 10 users
 		users := []db.User{}
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			users = append(users, createRandomUser(t))
 		}
 
@@ -177,6 +177,7 @@ func createRandomUser(t *testing.T) db.User {
 	user, err := store.CreateUser(context.Background(), db.CreateUserParams{
 		Username:    utils.RandomString(8),
 		DisplayName: utils.RandomString(8),
+		Email:       utils.RandomString(8),
 		AvatarUrl:   "",
 	})
 

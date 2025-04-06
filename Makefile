@@ -42,6 +42,6 @@ sqlc:
 
 # Run tests
 test:
-	go test -v ./...
+	go test -v ./test
 
 .PHONY: dev build start clean new_migration migrate_up migrate_down sqlc test

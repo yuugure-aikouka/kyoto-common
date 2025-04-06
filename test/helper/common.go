@@ -8,22 +8,31 @@ import (
 	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 	"github.com/yuugure-aikouka/kyoto-common/model"
 )
 
 func ResetDB(dbConn *pgxpool.Pool) {
-	ResetUsers(dbConn)
-	ResetPartnerships(dbConn)
+	resetUsers(dbConn)
+	resetPartnerships(dbConn)
 }
 
-func ResetUsers(dbConn *pgxpool.Pool) {
+func ResetCache(rdbConn *redis.Client) {
+	rdbConn.FlushAll(context.Background())
+}
+
+func ResetMailer(mailer *MockMailer) {
+	mailer.Clear()
+}
+
+func resetUsers(dbConn *pgxpool.Pool) {
 	_, err := dbConn.Exec(context.Background(), "DELETE FROM users")
 	if err != nil {
 		log.Fatalf("Failed to reset users: %v", err)
 	}
 }
 
-func ResetPartnerships(dbConn *pgxpool.Pool) {
+func resetPartnerships(dbConn *pgxpool.Pool) {
 	_, err := dbConn.Exec(context.Background(), "DELETE FROM partnerships")
 	if err != nil {
 		log.Fatalf("Failed to reset partnerships: %v", err)

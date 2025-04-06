@@ -44,6 +44,7 @@ func (s *Server) setupRouter() {
 	rg.GET("/users/:id/partners", s.handler.GetPartners)
 	rg.GET("/users/:id/potential-partners", s.handler.GetPotentialPartners)
 	rg.POST("/auth/magic", s.handler.SendMagicLinkHandler)
+	rg.GET("/auth/magic", s.handler.VerifyMagicLinkHandler)
 
 	s.router = e
 }

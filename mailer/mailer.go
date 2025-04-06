@@ -3,12 +3,18 @@ package mailer
 import (
 	"bytes"
 	"log"
+	"path/filepath"
+	"runtime"
 	"text/template"
 
 	"github.com/wneessen/go-mail"
 )
 
-type Mailer struct {
+type Mailer interface {
+	SendMagicLinkMail(to, magicLink string) error
+}
+
+type GoMailer struct {
 	fromEmail string
 	client    *mail.Client
 	template  *template.Template
@@ -20,7 +26,7 @@ type SMTPConfig struct {
 	Password string
 }
 
-func NewMailer(fromEmail string, smtpConfig SMTPConfig) *Mailer {
+func NewGoMailer(fromEmail string, smtpConfig SMTPConfig) Mailer {
 	client, err := mail.NewClient(
 		smtpConfig.Host,
 		mail.WithTLSPortPolicy(mail.TLSMandatory),
@@ -32,16 +38,16 @@ func NewMailer(fromEmail string, smtpConfig SMTPConfig) *Mailer {
 		log.Fatalf("Failed to create mail client: %s\n", err)
 	}
 
-	tmpl := template.Must(template.ParseGlob("mailer/templates/*.html"))
+	tmpl := template.Must(template.ParseGlob(getTemplatePath()))
 
-	return &Mailer{
+	return &GoMailer{
 		fromEmail: fromEmail,
 		client:    client,
 		template:  tmpl,
 	}
 }
 
-func (m *Mailer) sendEmail(to, subject, templateName string, data any) error {
+func (m *GoMailer) sendEmail(to, subject, templateName string, data any) error {
 	message := mail.NewMsg()
 	if err := message.From(m.fromEmail); err != nil {
 		return err
@@ -66,11 +72,18 @@ func (m *Mailer) sendEmail(to, subject, templateName string, data any) error {
 	return nil
 }
 
-func (m *Mailer) createMailContent(templateName string, data any) (string, error) {
+func (m *GoMailer) createMailContent(templateName string, data any) (string, error) {
 	var body bytes.Buffer
 	if err := m.template.ExecuteTemplate(&body, templateName+".html", data); err != nil {
 		return "", err
 	}
 
 	return body.String(), nil
+}
+
+func getTemplatePath() string {
+	_, b, _, _ := runtime.Caller(0)
+	basepath := filepath.Dir(b)
+
+	return filepath.Join(basepath, "templates", "*.html")
 }

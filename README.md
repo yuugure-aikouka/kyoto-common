@@ -6,6 +6,7 @@
 
 - Go 1.23.5+
 - Postgres
+- Redis
 - [Air](https://github.com/air-verse/air) (for hot-reloading in development)
 - [Goose](https://github.com/pressly/goose) (for database migration purposes)
 - [sqlc](https://sqlc.dev/) (for generating type-safe DAO code from SQL)

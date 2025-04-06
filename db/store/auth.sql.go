@@ -9,29 +9,11 @@ import (
 	"context"
 )
 
-const createMagicLink = `-- name: CreateMagicLink :exec
-INSERT INTO magic_links (
-    email, token, expires_at
-) VALUES (
-    $1, $2, NOW() + INTERVAL '15 minutes'
-)
+const createRefreshToken = `-- name: CreateRefreshToken :exec
+INSERT INTO refresh_tokens (token) VALUES ($1)
 `
 
-type CreateMagicLinkParams struct {
-	Email string `json:"email"`
-	Token string `json:"token"`
-}
-
-func (q *Queries) CreateMagicLink(ctx context.Context, arg CreateMagicLinkParams) error {
-	_, err := q.db.Exec(ctx, createMagicLink, arg.Email, arg.Token)
-	return err
-}
-
-const invalidateActiveMagicLink = `-- name: InvalidateActiveMagicLink :exec
-DELETE FROM magic_links WHERE email = $1 AND expires_at > NOW()
-`
-
-func (q *Queries) InvalidateActiveMagicLink(ctx context.Context, email string) error {
-	_, err := q.db.Exec(ctx, invalidateActiveMagicLink, email)
+func (q *Queries) CreateRefreshToken(ctx context.Context, token string) error {
+	_, err := q.db.Exec(ctx, createRefreshToken, token)
 	return err
 }
