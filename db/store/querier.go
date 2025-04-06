@@ -9,9 +9,13 @@ import (
 )
 
 type Querier interface {
+	CheckRefreshTokenExist(ctx context.Context, token string) (bool, error)
 	CreatePartnership(ctx context.Context, arg CreatePartnershipParams) (Partnership, error)
+	CreateRefreshToken(ctx context.Context, token string) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	GetUser(ctx context.Context, id int32) (User, error)
+	DeleteRefreshToken(ctx context.Context, token string) error
+	GetUserByEmail(ctx context.Context, email string) (User, error)
+	GetUserById(ctx context.Context, id int32) (User, error)
 	ListPartners(ctx context.Context, userID int32) ([]ListPartnersRow, error)
 	ListPotentialPartners(ctx context.Context, userID int32) ([]ListPotentialPartnersRow, error)
 	UpdatePartnershipStatus(ctx context.Context, arg UpdatePartnershipStatusParams) error

@@ -60,6 +60,12 @@ type Partnership struct {
 	Status    PartnershipStatus `json:"status"`
 }
 
+type RefreshToken struct {
+	ID        int32     `json:"id"`
+	Token     string    `json:"token"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type User struct {
 	ID          int32     `json:"id"`
 	Username    string    `json:"username"`
@@ -68,4 +74,5 @@ type User struct {
 	IsAi        bool      `json:"is_ai"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+	Email       string    `json:"email"`
 }

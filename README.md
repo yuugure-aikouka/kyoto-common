@@ -6,6 +6,7 @@
 
 - Go 1.23.5+
 - Postgres
+- Redis
 - [Air](https://github.com/air-verse/air) (for hot-reloading in development)
 - [Goose](https://github.com/pressly/goose) (for database migration purposes)
 - [sqlc](https://sqlc.dev/) (for generating type-safe DAO code from SQL)
@@ -71,9 +72,9 @@ To work with sqlc, follow these steps:
         id := 1
         firstUser, err := s.store.GetUserById(c.Request().Context(), id)
         if err != nil {
-            return jsonResponse[any](c, http.StatusInternalServerError, nil)
+            return utils.Response[any](c, http.StatusInternalServerError, nil)
         }
 
-        return jsonResponse(c, http.StatusOK, firstUser)
+        return utils.Response(c, http.StatusOK, firstUser)
     }
     ```
