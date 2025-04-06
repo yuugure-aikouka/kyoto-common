@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/yuugure-aikouka/kyoto-common/config"
 	"github.com/yuugure-aikouka/kyoto-common/handler"
 )
@@ -35,18 +35,23 @@ func (s *Server) setupRouter() {
 	e.Server.IdleTimeout = s.config.IdleTimeout * time.Second
 
 	// Middlewares
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	e.Use(echoMiddleware.Logger())
+	e.Use(echoMiddleware.Recover())
 
 	// Routes
-	rg := e.Group("/v1")
-	rg.GET("/health", s.handler.HealthCheck)
-	rg.GET("/users/:id/partners", s.handler.GetPartners)
-	rg.GET("/users/:id/potential-partners", s.handler.GetPotentialPartners)
-	rg.POST("/auth/magic", s.handler.SendMagicLinkHandler)
-	rg.GET("/auth/magic", s.handler.VerifyMagicLinkHandler)
-	rg.POST("/auth/refresh", s.handler.RefreshAccessTokenHandler)
-	rg.DELETE("/auth/logout", s.handler.LogoutHandler)
+	r := e.Group("/v1")
+	r.GET("/health", s.handler.HealthCheck)
+	r.POST("/auth/magic", s.handler.SendMagicLinkHandler)
+	r.GET("/auth/magic", s.handler.VerifyMagicLinkHandler)
+	r.POST("/auth/refresh", s.handler.RefreshAccessTokenHandler)
+	r.DELETE("/auth/logout", s.handler.LogoutHandler)
+	r.GET("/users/:id/partners", s.handler.GetPartners)
+	r.GET("/users/:id/potential-partners", s.handler.GetPotentialPartners)
+
+	// TODO: use authMiddleware like this
+	// authMiddleware := middleware.AuthMiddleware(s.config.AccessTokenSecretKey)
+	// protected := r.Group("", authMiddleware)
+	// protected.GET("/users/:id/partners", s.handler.GetPartners)
 
 	s.router = e
 }
